@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Video;
 
+use Illuminate\Support\Facades\Storage;
+
 class VideoController extends Controller
 {
     /**
@@ -35,15 +37,29 @@ class VideoController extends Controller
      */
     public function store(Request $request)
     {
-        $characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_';
-        $uniqid = '';
-        for ($i = 0; $i < 11; $i++)
+        
+        $this->validate($request,[
+            'video' => 'required',
+        ]);
+
+        if($request->hasFile('video')){
+            $characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_';
+            $uniqid = '';
+                for ($i = 0; $i < 11; $i++)
             $uniqid .= $characters[mt_rand(0, 63)];
-        $video = new Video();
-        $video->id = $uniqid;
-        $video->path = "/";
-        if($video->save()){
-            return $uniqid;
+
+            $fileNameWithExtension = $request->file('video')->getClientOriginalName();
+            $filename = pathinfo($fileNameWithExtension,PATHINFO_FILENAME);
+            $extension = $request->file('video')->getClientOriginalExtension();
+            $filenameToStore = $uniqid.".".$extension;
+            $path = $request->file('video')->storeAs('public/videos',$filenameToStore);
+
+            $video = new Video;
+            $video->id = $uniqid;
+            $video->path = $path;
+            if($video->save()){
+                return $uniqid;
+            }
         }
     }
 
@@ -53,9 +69,9 @@ class VideoController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show($id,$quality)
     {
-        echo "Single video with id of ".$id;
+        echo "id - ".$id."<br> quality - " . $quality;
     }
 
     /**
@@ -87,8 +103,12 @@ class VideoController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
+
     public function destroy($id)
     {
-        //
+        $video = Video::find($id);
+        if($video->delete()){
+            echo "deleted";
+        }
     }
 }
