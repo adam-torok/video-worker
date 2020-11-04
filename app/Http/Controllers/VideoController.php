@@ -9,37 +9,11 @@ use Illuminate\Support\Facades\Storage;
 
 class VideoController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
-    {
-        echo "All videos";
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
+    
     public function store(Request $request)
     {
-        
         $this->validate($request,[
-            'video' => 'required',
+            'video' => 'required|file|mimetypes:video/*',
         ]);
 
         if($request->hasFile('video')){
@@ -52,63 +26,41 @@ class VideoController extends Controller
             $filename = pathinfo($fileNameWithExtension,PATHINFO_FILENAME);
             $extension = $request->file('video')->getClientOriginalExtension();
             $filenameToStore = $uniqid.".".$extension;
-            $path = $request->file('video')->storeAs('public/videos',$filenameToStore);
-
+            $path = $request->file('video')->storeAs('/',$filenameToStore,'uploads');
             $video = new Video;
             $video->id = $uniqid;
             $video->path = $path;
             if($video->save()){
                 return $uniqid;
             }
+        }else{
+            // RESPONSE
         }
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function show($id,$quality)
     {
-        echo "id - ".$id."<br> quality - " . $quality;
+        $video = Video::find($id);
+        switch ($quality) {
+            case '360':
+                return "http://127.0.0.1:8000/videos/360/".$video->path;      
+                break;
+            case '720':
+                return "http://127.0.0.1:8000/videos/360/".$video->path;      
+                break;
+            default:
+                return "http://127.0.0.1:8000/videos/default/".$video->path;      
+                break;
+        }
     }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
 
     public function destroy($id)
     {
         $video = Video::find($id);
-        if($video->delete()){
-            echo "deleted";
+        if($video->delete() && Storage::delete($video->path)){
+            //RESPONSE
+        }else{
+           //RESPONSE
         }
     }
 }
