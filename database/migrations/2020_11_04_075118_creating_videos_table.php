@@ -14,8 +14,11 @@ class CreatingVideosTable extends Migration
     public function up()
     {
         Schema::create('videos',function(Blueprint $table){
-            $table->increments('id');
+            $table->string('id',11);
             $table->string('path');
+            $table->dateTime('created_at');
+            $table->dateTime('updated_at');
+            $table->primary('id');	
         });
     }
 
