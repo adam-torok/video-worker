@@ -16,8 +16,7 @@ class CreatingVideosTable extends Migration
         Schema::create('videos',function(Blueprint $table){
             $table->string('id',11);
             $table->string('path');
-            $table->boolean('processed');
-            $table->dateTime('converted_at');
+            $table->boolean('processed')->default('0');
             $table->dateTime('created_at');
             $table->dateTime('updated_at');
             $table->primary('id');	

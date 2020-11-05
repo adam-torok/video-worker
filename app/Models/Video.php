@@ -8,8 +8,5 @@ use Illuminate\Database\Eloquent\Model;
 class Video extends Model
 {
     use HasFactory;
-    protected $dates = [
-        'converted_at',
-    ];
     protected $fillable = ['updated_at', 'created_at'];
 }

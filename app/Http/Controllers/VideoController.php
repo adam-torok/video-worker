@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Video;
+use App\Jobs\ConvertVideo;
 
 use Illuminate\Support\Facades\Storage;
 
@@ -17,24 +18,21 @@ class VideoController extends Controller
         ]);
 
         if($request->hasFile('video')){
-            $characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_';
-            $uniqid = '';
-                for ($i = 0; $i < 11; $i++)
-            $uniqid .= $characters[mt_rand(0, 63)];
-
+            $uniqId = $this->generateuniqId();
             $fileNameWithExtension = $request->file('video')->getClientOriginalName();
             $filename = pathinfo($fileNameWithExtension,PATHINFO_FILENAME);
             $extension = $request->file('video')->getClientOriginalExtension();
-            $filenameToStore = $uniqid.".".$extension;
-            $path = $request->file('video')->storeAs('/',$filenameToStore,'uploads');
+            $filenameToStore = $uniqId.".".$extension;
+            $path = $request->file('video')->storeAs('/',$filenameToStore,'videos');
             $video = new Video;
-            $video->id = $uniqid;
+            $video->id = $uniqId;
             $video->path = $path;
             if($video->save()){
-                return $uniqid;
+                ConvertVideo::dispatch($video);
+                return $uniqId;
             }
         }else{
-            // RESPONSE
+            abort(404);
         }
     }
 
@@ -62,5 +60,13 @@ class VideoController extends Controller
         }else{
            //RESPONSE
         }
+    }
+
+    public static function generateuniqId(){
+        $characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_';
+        $uniqId = '';
+        for ($i = 0; $i < 11; $i++)
+        $uniqId .= $characters[mt_rand(0, 63)];
+        return $uniqId;
     }
 }

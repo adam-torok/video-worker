@@ -65,12 +65,28 @@ return [
             'endpoint' => env('AWS_ENDPOINT'),
         ],
 
-        'uploads' => [
+        'videos' => [
             'driver' => 'local',
-            'root' => public_path('videos'),
+            'root' => public_path('videos/default'),
             'url' => 'videos',
             'visibility' => 'public',
         ],
+
+        'videos360' => [
+            'driver' => 'local',
+            'root' => public_path('videos/360'),
+            'url' => 'videos',
+            'visibility' => 'public',
+        ],
+
+
+        'videos720' => [
+            'driver' => 'local',
+            'root' => public_path('videos/720'),
+            'url' => 'videos',
+            'visibility' => 'public',
+        ],
+
 
     ],
 
