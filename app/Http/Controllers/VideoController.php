@@ -41,14 +41,22 @@ class VideoController extends Controller
         $video = Video::find($id);
         switch ($quality) {
             case '360':
+            if($video->processed = 1){
                 return "http://127.0.0.1:8000/videos/360/".$video->path;      
-                break;
+            }else{
+                return "http://127.0.0.1:8000/videos/default/".$video->path;      
+            }
+            break;
             case '720':
-                return "http://127.0.0.1:8000/videos/360/".$video->path;      
+            if($video->processed = 1){
+                return "http://127.0.0.1:8000/videos/720/".$video->path;      
+            }else{
+                return "http://127.0.0.1:8000/videos/default/".$video->path;
+            }     
                 break;
             default:
                 return "http://127.0.0.1:8000/videos/default/".$video->path;      
-                break;
+            break;
         }
     }
 

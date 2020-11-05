@@ -7,7 +7,6 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Carbon\Carbon;
 use FFMpeg;
 use App\Models\Video;
 use FFMpeg\Format\Video\X264;
@@ -48,14 +47,13 @@ class ConvertVideo implements ShouldQueue
             })
             ->save($this->video->path);
             
+            $videoToUpdate = Video::find($this->video->id);
+            $videoToUpdate->processed = 1;
+
+            $videoToUpdate->save();
+            
         } catch (EncodingException $exception) {
-            $command = $exception->getCommand();
             $errorLog = $exception->getErrorOutput();
         }
-
-        $videoToUpdate = Video::find($this->video->id);
-        $videoToUpdate->processed = 1;
-
-        $videoToUpdate->save();
     }
 }
