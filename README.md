@@ -32,20 +32,20 @@ For any questions that you have in mind, or suggestions please contact me at ada
 ## Endpoints
 
 Showing video in quality
-Req. type : GET
-Endpoint : /video/{id}/{quality}
-PS: - where id is the id, quality can be 360 or 720 (it is not actual quality but height)
-The response is the link for the video
+- Req. type : GET
+- Endpoint : /video/{id}/{quality}
+- PS: - where id is the id, quality can be 360 or 720 (it is not actual quality but height)
+- The response is the link for the video
 
 Show a default video
-Req. type : GET
-Endpoint : /video/{id}/
-PS: where id is the id with the default uploaded quality
+- Req. type : GET
+- Endpoint : /video/{id}/
+- PS: where id is the id with the default uploaded quality
 
 Uploading videos 
-Req. type : POST
-Endpoint :  /video.upload 
-PS: Where the file name is video in the request body
+- Req. type : POST
+- Endpoint :  /video.upload 
+- PS: Where the file name is video in the request body
 
 Deleting videos
 Req. type : POST
