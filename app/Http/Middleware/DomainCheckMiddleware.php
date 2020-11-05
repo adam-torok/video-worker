@@ -9,8 +9,9 @@ class DomainCheckMiddleware
 {
     public function handle(Request $request, Closure $next)
     {
-        $allowedHosts = explode(',', env('ALLOWED_DOMAINS'));
-        $requestHost = parse_url($request->headers->get('origin'),  PHP_URL_HOST);
+        try {
+            $allowedHosts = explode(',', env('ALLOWED_DOMAINS'));
+            $requestHost = parse_url($request->headers->get('origin'),  PHP_URL_HOST);
             if(!\in_array($requestHost, $allowedHosts, false)) {
                 $requestInfo = [
                     'host' => $requestHost,
@@ -18,8 +19,10 @@ class DomainCheckMiddleware
                     'url' => $request->getRequestUri(),
                     'agent' => $request->header('User-Agent'),
                 ];
-                throw new SuspiciousOperationException("Not allowed domain!");
             }
-        return $next($request);
+            return $next($request);
+        } catch (\Throwable $th) {
+            echo "Not allowed domain!";
+        }  
     }
 }
