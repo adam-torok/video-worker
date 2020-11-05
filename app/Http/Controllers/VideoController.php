@@ -53,7 +53,7 @@ class VideoController extends Controller
             }else{
                 return "http://127.0.0.1:8000/videos/default/".$video->path;
             }     
-                break;
+            break;
             default:
                 return "http://127.0.0.1:8000/videos/default/".$video->path;      
             break;
