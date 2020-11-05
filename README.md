@@ -46,11 +46,13 @@ Uploading videos
 - Req. type : POST
 - Endpoint :  /video.upload 
 - PS: Where the file name is video in the request body
+- The response is the id of the video
 
 Deleting videos
-Req. type : POST
-Endpoint : /video.delete/{id}
-PS: Where the id is the id of the video
+- Req. type : POST
+- Endpoint : /video.delete/{id}
+- PS: Where the id is the id of the video
+- The response is nothing. 
 
 Suggestion - Use postman to test the api out.
 
