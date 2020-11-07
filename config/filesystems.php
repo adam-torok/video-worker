@@ -86,8 +86,6 @@ return [
             'url' => 'videos',
             'visibility' => 'public',
         ],
-
-
     ],
 
     /*

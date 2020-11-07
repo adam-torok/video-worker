@@ -18,42 +18,57 @@ class ConvertVideo implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
     
     public $video;
-   
-    public function __construct(Video $video)
+    public $destination;
+    public $height;
+    public function __construct(Video $video, $height)
     {
         $this->video = $video;
+        $this->height = $height;
+        switch ($height) {
+            case '360':
+                $this->destination = 'videos'.$height;
+                break;
+            case '720':
+                $this->destination = 'videos'.$height;
+                break;
+            default:
+                $this->destination = 'videos360';
+                break;
+        }
     }
 
     public function handle()
     {
-       try {
-            FFMpeg::fromDisk('videos')
-            ->open($this->video->path)
+        $videoPath = $this->video->path;
+        $videoId = $this->video->id;
+        $videoHeight = $this->height;
+        $videoDest = $this->destination;
+       
+        $this->ConvertVideoToFormat($videoPath,$videoDest,$videoHeight);
+        $videoToUpdate = Video::find($videoId);
+        $videoToUpdate->processed = 1;
+        $videoToUpdate->save();
+    }
+    
+    public function ConvertVideoToFormat($srcPath,$destPath,$videoHeight){
+        $videoSrcWithoutExtension = $this->getCleanFileName($srcPath);
+        FFMpeg::fromDisk('videos')
+            //Mp4 format
+            ->open($srcPath)
             ->export()
-            ->toDisk('videos360')
+            ->toDisk($destPath)
             ->inFormat(new \FFMpeg\Format\Video\X264)
-            ->addFilter(function (VideoFilters $filters) {
-                $filters->resize(new \FFMpeg\Coordinate\Dimension(360, 480));
-            })
-            ->save($this->video->path);
-
-             FFMpeg::fromDisk('videos')
-            ->open($this->video->path)
+            ->resize($videoHeight, 480)
+            ->save($videoSrcWithoutExtension.'.mp4')
+            //WebM format
             ->export()
-            ->toDisk('videos720')
-            ->inFormat(new \FFMpeg\Format\Video\X264)
-            ->addFilter(function (VideoFilters $filters) {
-                $filters->resize(new \FFMpeg\Coordinate\Dimension(720, 480));
-            })
-            ->save($this->video->path);
-            
-            $videoToUpdate = Video::find($this->video->id);
-            $videoToUpdate->processed = 1;
+            ->toDisk($destPath)
+            ->inFormat(new \FFMpeg\Format\Video\WebM)
+            ->resize($videoHeight, 480)
+            ->save($videoSrcWithoutExtension.'.webm');
+    }
 
-            $videoToUpdate->save();
-            
-        } catch (EncodingException $exception) {
-            $errorLog = $exception->getErrorOutput();
-        }
+    private function getCleanFileName($filename){
+        return preg_replace('/\\.[^.\\s]{3,4}$/', '', $filename);
     }
 }

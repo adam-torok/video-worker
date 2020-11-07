@@ -14,48 +14,67 @@ class VideoController extends Controller
     public function store(Request $request)
     {
         $this->validate($request,[
-            'video' => 'required|file|mimetypes:video/*',
+            'video' => 'required|file|mimetypes:video/mp4,video/webm',
         ]);
 
         if($request->hasFile('video')){
-            $uniqId = $this->generateuniqId();
+            $uniqId = $this->generateUniqId();
             $fileNameWithExtension = $request->file('video')->getClientOriginalName();
             $filename = pathinfo($fileNameWithExtension,PATHINFO_FILENAME);
             $extension = $request->file('video')->getClientOriginalExtension();
             $filenameToStore = $uniqId.".".$extension;
+
             $path = $request->file('video')->storeAs('/',$filenameToStore,'videos');
             $video = new Video;
             $video->id = $uniqId;
             $video->path = $path;
-            if($video->save()){
-                ConvertVideo::dispatch($video);
-                return $uniqId;
-            }
+            $video->save();
+            ConvertVideo::dispatch($video,360);
+            ConvertVideo::dispatch($video,720);
+            return response()->json([
+                'id' => $uniqId,
+            ], 200);
         }else{
-            abort(404);
+            abort(500);
         }
     }
 
-    public function show($id,$quality)
+    public function show($quality,$id)
     {
         $video = Video::find($id);
+        $videoPath = $video->path;
+        $isProcessed = $video->processed;
+        $urlFor360Video =  env('TEST_DOMAIN')."/videos/360/";
+        $urlFor720Video = env('TEST_DOMAIN')."/videos/720/";
+        $urlForDefaultVideo = env('TEST_DOMAIN')."/videos/default/";
+
         switch ($quality) {
             case '360':
-            if($video->processed = 1){
-                return "http://127.0.0.1:8000/videos/360/".$video->path;      
+            if($isProcessed = 1){
+            return response()->json([
+                'link' => $urlFor360Video.$videoPath
+            ], 200);
             }else{
-                return "http://127.0.0.1:8000/videos/default/".$video->path;      
+            return response()->json([
+                'link' => $urlForDefaultVideo.$videoPath
+            ], 404);  
             }
             break;
             case '720':
-            if($video->processed = 1){
-                return "http://127.0.0.1:8000/videos/720/".$video->path;      
+            if($isProcessed = 1){
+            return response()->json([
+                'link' => $urlFor720Video.$videoPath
+            ], 200);
             }else{
-                return "http://127.0.0.1:8000/videos/default/".$video->path;
+            return response()->json([
+                'link' => $urlForDefaultVideo.$videoPath
+            ], 404);
             }     
             break;
             default:
-                return "http://127.0.0.1:8000/videos/default/".$video->path;      
+                return response()->json([
+                'link' => $urlForDefaultVideo.$videoPath
+            ], 200);
             break;
         }
     }
@@ -63,14 +82,23 @@ class VideoController extends Controller
     public function destroy($id)
     {
         $video = Video::find($id);
-        if($video->delete() && Storage::delete($video->path)){
-            //RESPONSE
-        }else{
-           //RESPONSE
+        $videoId = $id;
+        $this->deleteVideosFromDirectories($videoId);
+        $video->delete();
+    }
+
+    public static function deleteVideosFromDirectories($videoToDelete)
+    {
+        $disks = ['videos360','videos720','videos'];
+        foreach ($disks as $disk) {
+            echo $disk;
+            echo $videoToDelete;
+            Storage::disk($disk)->delete($videoToDelete.'.mp4');
+            Storage::disk($disk)->delete($videoToDelete.'.webm');
         }
     }
 
-    public static function generateuniqId(){
+    public static function generateUniqId(){
         $characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_';
         $uniqId = '';
         for ($i = 0; $i < 11; $i++)
